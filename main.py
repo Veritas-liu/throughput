@@ -47,5 +47,5 @@ for filename in os.listdir(log_dir):
     with open(filepath, 'r', encoding='utf-8') as f:
       lines = f.readlines()
       if lines:
-        a = lines[-1].strip().split()[-2:-1]
+        a = lines[-1].strip().split()[-2:]
         print(f'{a[0]}: {a[1]}')
