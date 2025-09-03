@@ -2,10 +2,11 @@ import subprocess
 import os
 import concurrent.futures
 
-test_case = [('mesh', 2, i) for i in range(2, 9)] + \
-            [('turos', 2, i) for i in range(3, 9)] + \
-            [('mesh', 3, i) for i in range(2, 5)] + \
-            [('turos', 3, i) for i in range(3, 5)]
+test_case = [('mesh', 2, i) for i in range(2, 9)] \
+          # + [('turos', 2, i) for i in range(3, 9)] \
+          # + [('mesh', 3, i) for i in range(2, 5)] \
+          # + [('turos', 3, i) for i in range(3, 5)] \
+
 # Stage 1: 编译 genpath 和 gentopo
 print('Compiling genpath and gentopo...')
 subprocess.run(['g++', 'genpath.cpp', '-o', 'genpath'])
@@ -38,14 +39,17 @@ with concurrent.futures.ThreadPoolExecutor() as executor:
     for topo, n, m in test_case
   ]
 concurrent.futures.wait(futures)
-
 log_dir = './log'
 print('Summary:')
-for filename in os.listdir(log_dir):
-  if filename.endswith('.log'):
-    filepath = os.path.join(log_dir, filename)
+print('topo\tdim\tsize\tmlu\teff\teff2')
+for topo, n, m in test_case:
+  filename = f'{topo}_{n}d_{m}.log'
+  filepath = os.path.join(log_dir, filename)
+  if os.path.isfile(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
       lines = f.readlines()
       if lines:
-        a = lines[-1].strip().split()[-2:]
-        print(f'{a[0]}: {a[1]}')
+        mlu = float(lines[-1].strip().split()[-1])
+        eff = mlu/(m**n-1)*(2*n if topo=="turos" else (m-1)*n)
+        eff2 = mlu/(m**n)*(2*n if topo=="turos" else (m-1)*n)
+        print(f'{topo}\t{n}\t{m}\t{mlu:.4f}\t{eff:.4f}\t{eff2:.4f}')
